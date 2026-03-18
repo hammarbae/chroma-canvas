@@ -308,6 +308,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 📩 Dynamic Form Submit (AJAX/Fetch)
+    const feedbackForm = document.querySelector('.feedback-form');
+    const toastMessage = (msg) => {
+        if (typeof showToast === 'function') {
+            showToast(msg);
+        } else {
+            alert(msg);
+        }
+    };
+
+    if (feedbackForm) {
+        feedbackForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = feedbackForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = '전송 중...';
+            submitBtn.disabled = true;
+
+            const formData = new FormData(feedbackForm);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(feedbackForm.action, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    toastMessage('소중한 피드백이 전송되었습니다!');
+                    feedbackForm.reset();
+                    if (feedbackModal) feedbackModal.classList.remove('active');
+                } else {
+                    toastMessage('전송 에러가 발생했습니다. n8n 워크플로우 활성화(Active) 상태와 인증을 확인해 주세요!');
+                }
+            } catch (err) {
+                toastMessage('서버 연동 전송 중 에러가 발생했습니다. n8n 옵션을 확인해 주세요.');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.innerText = originalText;
+                    submitBtn.disabled = false;
+                }
+            }
+        });
+    }
+
     // 🌐 Translation Dictionary
     const translations = {
         ko: {
